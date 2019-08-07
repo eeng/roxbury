@@ -16,7 +16,9 @@ module Business
     end
 
     def working_hours_between from, to
+      from, to = cast_time(from, :start), cast_time(to, :end)
       from, to, sign = invert_if_needed from, to
+
       (from.to_date..to.to_date).map do |date|
         filters = {}
         filters[:from] = from if date == from.to_date
@@ -25,8 +27,12 @@ module Business
       end.sum.round(2) * sign
     end
 
-    def add_business_days date, days
-      # TODO
+    def working_days_between from, to
+      working_hours_between(from, to) / max_working_hours_in_a_day.to_f
+    end
+
+    def add_working_hours to, number_of_hours
+      to + number_of_hours.hours
     end
 
     def holiday? date
@@ -34,6 +40,17 @@ module Business
     end
 
     private
+
+    def cast_time date_or_time, start_or_end
+      case date_or_time
+      when Time then
+        date_or_time
+      when Date then
+        start_or_end == :end ? date_or_time.to_time.end_of_day : date_or_time.to_time
+      else
+        raise ArgumentError, "Type #{date_or_time.class} not supported"
+      end
+    end
 
     def invert_if_needed from, to
       if from > to
@@ -55,6 +72,10 @@ module Business
       else
         @working_hours[date.strftime('%a')]
       end
+    end
+
+    def max_working_hours_in_a_day
+      @working_hours.values.map(&:working_hours).max
     end
   end
 end

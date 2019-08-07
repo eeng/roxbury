@@ -80,8 +80,47 @@ module Business
         expect_working_hours calendar, '2019-08-06 9:00', '2019-08-07 17:00', 8
       end
 
+      it 'should work with Date instances' do
+        expect(calendar.working_hours_between(Date.parse('2019-08-09'), Date.parse('2019-08-09'))).to eq(16)
+        expect(calendar.working_hours_between(Date.parse('2019-08-10'), Date.parse('2019-08-10'))).to eq(8)
+      end
+
       def expect_working_hours calendar, from, to, expected_hours
         expect(calendar.working_hours_between(Time.parse(from), Time.parse(to))).to eq(expected_hours)
+      end
+    end
+
+    context 'working_days_between' do
+      subject do
+        Calendar.new(
+          working_hours: {
+            'Mon' => 5..21,
+            'Tue' => 5..21,
+            'Wed' => 5..21,
+            'Thu' => 5..21,
+            'Fri' => 5..21,
+            'Sat' => 5..13
+          },
+          holidays: [Date.parse('2019-08-07')]
+        )
+      end
+
+      it 'should return the number of working days between the two dates including the fractional part' do
+        expect_working_days subject, '2014-12-01', '2014-12-01', 1
+        expect_working_days subject, '2014-12-01', '2014-12-07', 5.5
+        expect_working_days subject, '2014-12-01', '2014-12-08', 6.5
+        expect_working_days subject, '2014-12-01', '2014-12-09', 7.5
+        expect_working_days subject, '2014-12-01', '2014-12-09', 7.5
+        expect_working_days subject, '2014-12-01', '2014-12-13', 11
+      end
+
+      it 'should handle holidays' do
+        expect_working_days subject, '2019-08-07', '2019-08-07', 0
+        expect_working_days subject, '2019-08-06', '2019-08-07', 1
+      end
+
+      def expect_working_days calendar, from, to, wd
+        expect(calendar.working_days_between(Date.parse(from), Date.parse(to))).to eq wd
       end
     end
 
@@ -99,8 +138,10 @@ module Business
         )
       end
 
-      skip 'when the result is on the same day' do
+      it 'when the result is on the same day' do
+        add_working_hours calendar, '2000-02-22 06:05', 0, '2000-02-22 06:05'
         add_working_hours calendar, '2000-02-22 06:05', 5, '2000-02-22 11:05'
+        add_working_hours calendar, '2000-02-22 06:05', 0.5, '2000-02-22 06:35'
       end
 
       def add_working_hours calendar, to, hours, expected_time
