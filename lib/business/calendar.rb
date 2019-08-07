@@ -1,6 +1,7 @@
 require 'active_support/time'
 require 'business/calendar/version'
 require 'business/day'
+require 'business/non_working_day'
 
 module Business
   class Calendar
@@ -10,7 +11,7 @@ module Business
 
     def initialize working_hours: {}, holidays: []
       @working_hours = DAYS_OF_THE_WEEK.inject({}) do |wh, dow|
-        wh.merge dow => Day.parse(working_hours[dow])
+        wh.merge dow => Day.parse(working_hours[dow], dow)
       end
       @holidays = Set.new(holidays)
     end
@@ -19,12 +20,14 @@ module Business
       from, to = cast_time(from, :start), cast_time(to, :end)
       from, to, sign = invert_if_needed from, to
 
-      (from.to_date..to.to_date).map do |date|
+      working_hours_per_day = (from.to_date..to.to_date).map do |date|
         filters = {}
         filters[:from] = from if date == from.to_date
         filters[:to] = to if date == to.to_date
         business_day(date).working_hours filters
-      end.sum.round(2) * sign
+      end
+
+      working_hours_per_day.sum.round(2) * sign
     end
 
     def working_days_between from, to
@@ -32,7 +35,28 @@ module Business
     end
 
     def add_working_hours to, number_of_hours
-      to + number_of_hours.hours
+      to = cast_time(to, :start)
+
+      rolling_timestamp = snap_to_beginning_of_next_business_day(to)
+      remaining_hours = number_of_hours
+
+      until (bday = business_day(rolling_timestamp)).include?(rolling_timestamp + remaining_hours.hours)
+        remaining_hours -= bday.working_hours(from: rolling_timestamp)
+        rolling_timestamp = snap_to_beginning_of_next_business_day(bday.at_end(rolling_timestamp) + 1.minute)
+      end
+
+      rolling_timestamp + remaining_hours.hours
+    end
+
+    def snap_to_beginning_of_next_business_day date
+      bday = business_day(date)
+      if bday.include?(date)
+        date
+      elsif bday.before_start?(date)
+        business_day(date).at_beginning(date)
+      else
+        snap_to_beginning_of_next_business_day date.change(day: date.day + 1, hour: 0, minute: 0)
+      end
     end
 
     def holiday? date
@@ -67,10 +91,11 @@ module Business
     end
 
     def business_day date
+      dow = Day.date_to_dow(date)
       if holiday? date
-        Day.non_working_day
+        Day.non_working_day(dow)
       else
-        @working_hours[date.strftime('%a')]
+        @working_hours[dow]
       end
     end
 

@@ -91,7 +91,7 @@ module Business
     end
 
     context 'working_days_between' do
-      subject do
+      let(:calendar) do
         Calendar.new(
           working_hours: {
             'Mon' => 5..21,
@@ -101,22 +101,24 @@ module Business
             'Fri' => 5..21,
             'Sat' => 5..13
           },
-          holidays: [Date.parse('2019-08-07')]
+          holidays: [Date.parse('2019-05-07')]
         )
       end
 
       it 'should return the number of working days between the two dates including the fractional part' do
-        expect_working_days subject, '2014-12-01', '2014-12-01', 1
-        expect_working_days subject, '2014-12-01', '2014-12-07', 5.5
-        expect_working_days subject, '2014-12-01', '2014-12-08', 6.5
-        expect_working_days subject, '2014-12-01', '2014-12-09', 7.5
-        expect_working_days subject, '2014-12-01', '2014-12-09', 7.5
-        expect_working_days subject, '2014-12-01', '2014-12-13', 11
+        expect_working_days calendar, '2014-12-01', '2014-12-01', 1
+        expect_working_days calendar, '2014-12-01', '2014-12-07', 5.5
+        expect_working_days calendar, '2014-12-01', '2014-12-08', 6.5
+        expect_working_days calendar, '2014-12-01', '2014-12-09', 7.5
+        expect_working_days calendar, '2014-12-01', '2014-12-09', 7.5
+        expect_working_days calendar, '2014-12-01', '2014-12-13', 11
+        expect_working_days calendar, '2019-08-01', '2019-09-01', 24.5
+        expect_working_days calendar, '2019-08-01', '2020-08-01', 288.5
       end
 
       it 'should handle holidays' do
-        expect_working_days subject, '2019-08-07', '2019-08-07', 0
-        expect_working_days subject, '2019-08-06', '2019-08-07', 1
+        expect_working_days calendar, '2019-05-07', '2019-05-07', 0
+        expect_working_days calendar, '2019-05-06', '2019-05-07', 1
       end
 
       def expect_working_days calendar, from, to, wd
@@ -144,8 +146,66 @@ module Business
         add_working_hours calendar, '2000-02-22 06:05', 0.5, '2000-02-22 06:35'
       end
 
+      it 'when the result is on the next day' do
+        add_working_hours calendar, '2000-02-22 20:30', 1, '2000-02-23 05:30'
+        add_working_hours calendar, '2000-02-22 12:00', 15, '2000-02-23 11:00'
+      end
+
+      it 'when the given timestamp is before the start of a business_day' do
+        add_working_hours calendar, '2000-02-22 04:00', 1, '2000-02-22 06:00'
+        add_working_hours calendar, '2000-02-22 04:00', 6, '2000-02-22 11:00'
+      end
+
+      it 'when the given timestamp is after the end of a business_day' do
+        add_working_hours calendar, '2000-02-22 23:00', 6, '2000-02-23 11:00'
+      end
+
+      it 'when the hours to add span multiple days' do
+        add_working_hours calendar, '2000-02-18 20:00', 10, '2000-02-21 06:00'
+        add_working_hours calendar, '2000-02-18 20:00', 20, '2000-02-21 16:00'
+      end
+
+      it 'works with Date instances' do
+        expect(calendar.add_working_hours(Date.parse('2000-02-22'), 1)).to eq(Time.parse('2000-02-22 06:00'))
+      end
+
       def add_working_hours calendar, to, hours, expected_time
         expect(calendar.add_working_hours(Time.parse(to), hours)).to eq(Time.parse(expected_time))
+      end
+    end
+
+    context 'snap_to_beginning_of_next_business_day' do
+      let(:calendar) do
+        Calendar.new(
+          working_hours: {
+            'Mon' => 8..16,
+            'Tue' => 9..17,
+            'Fri' => 7..15
+          }
+        )
+      end
+
+      it 'when the datetime is already in the working period, should return the same value' do
+        snap '2019-08-05 08:00', '2019-08-05 08:00'
+        snap '2019-08-05 15:59', '2019-08-05 15:59'
+        snap '2019-08-06 09:00', '2019-08-06 09:00'
+        snap '2019-08-06 16:59', '2019-08-06 16:59'
+      end
+
+      it 'when the datetime is before the start of the business day, should return the start of the business day' do
+        snap '2019-08-05 00:00', '2019-08-05 08:00'
+        snap '2019-08-05 07:00', '2019-08-05 08:00'
+        snap '2019-08-06 08:30', '2019-08-06 09:00'
+      end
+
+      it 'when the datetime is after the end of the business day should return the start of the next business day' do
+        snap '2019-08-05 16:00', '2019-08-06 09:00'
+        snap '2019-08-05 16:05', '2019-08-06 09:00'
+        snap '2019-08-06 17:01', '2019-08-09 07:00'
+      end
+
+      def snap date, expected_result
+        expect(calendar.snap_to_beginning_of_next_business_day(Time.parse(date))).to eq(Time.parse(expected_result))
       end
     end
   end
