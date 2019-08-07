@@ -136,7 +136,8 @@ module Business
             'Thu' => 5..21,
             'Fri' => 5..21,
             'Sat' => 5..13
-          }
+          },
+          holidays: [Date.parse('2000-01-01')]
         )
       end
 
@@ -163,6 +164,29 @@ module Business
       it 'when the hours to add span multiple days' do
         add_working_hours calendar, '2000-02-18 20:00', 10, '2000-02-21 06:00'
         add_working_hours calendar, '2000-02-18 20:00', 20, '2000-02-21 16:00'
+        add_working_hours calendar, '2008-02-20 12:00', 55, '2008-02-25 11:00'
+      end
+
+      it 'should handle holidays' do
+        add_working_hours calendar, '1999-12-31 20:00', 7, '2000-01-03 11:00'
+        add_working_hours calendar, '2000-01-01 12:00', 6, '2000-01-03 11:00'
+      end
+
+      it 'some weird calendars' do
+        calendar = Calendar.new(
+          working_hours: {
+            'Mon' => 8..18,
+            'Wed' => 7..17,
+            'Fri' => 9..19
+          }
+        )
+        add_working_hours calendar, '2019-08-01 00:00', 160, '2019-09-09 08:00'
+        add_working_hours calendar, '2019-08-01 00:00', 300, '2019-10-11 09:00'
+
+        calendar = Calendar.new(
+          working_hours: Hash.new(0..24)
+        )
+        add_working_hours calendar, '2000-02-22 00:00', 23.5, '2000-02-22 23:30'
       end
 
       it 'works with Date instances' do
@@ -171,6 +195,32 @@ module Business
 
       def add_working_hours calendar, to, hours, expected_time
         expect(calendar.add_working_hours(Time.parse(to), hours)).to eq(Time.parse(expected_time))
+      end
+    end
+
+    context 'working_hours_between and add_working_hours' do
+      let(:calendar) do
+        Calendar.new(
+          working_hours: {
+            'Mon' => 8..17,
+            'Wed' => 7..21,
+            'Fri' => 9..18
+          }
+        )
+      end
+
+      it 'should be consistent between them' do
+        10.times do
+          hours_to_add = rand(0..1000)
+          from = Time.parse('2019-08-01 00:00')
+          to = calendar.add_working_hours(from, hours_to_add)
+          working_hours = calendar.working_hours_between(from, to)
+          expect(working_hours).to eq(hours_to_add), %(
+            Failed when:
+            add_working_hours(#{from}, #{hours_to_add}) => #{to}
+            working_hours_between(#{from}, #{to}) => #{working_hours}
+          )
+        end
       end
     end
 

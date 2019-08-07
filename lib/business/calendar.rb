@@ -1,7 +1,8 @@
 require 'active_support/time'
 require 'business/calendar/version'
+require 'business/working_hours'
+require 'business/no_working_hours'
 require 'business/day'
-require 'business/non_working_day'
 
 module Business
   class Calendar
@@ -11,20 +12,19 @@ module Business
 
     def initialize working_hours: {}, holidays: []
       @working_hours = DAYS_OF_THE_WEEK.inject({}) do |wh, dow|
-        wh.merge dow => Day.parse(working_hours[dow], dow)
+        wh.merge dow => WorkingHours.parse(working_hours[dow])
       end
       @holidays = Set.new(holidays)
     end
 
     def working_hours_between from, to
-      from, to = cast_time(from, :start), cast_time(to, :end)
-      from, to, sign = invert_if_needed from, to
+      from, to, sign = invert_if_needed cast_time(from, :start), cast_time(to, :end)
 
       working_hours_per_day = (from.to_date..to.to_date).map do |date|
         filters = {}
         filters[:from] = from if date == from.to_date
         filters[:to] = to if date == to.to_date
-        business_day(date).working_hours filters
+        business_day(date).number_of_working_hours filters
       end
 
       working_hours_per_day.sum.round(2) * sign
@@ -41,8 +41,8 @@ module Business
       remaining_hours = number_of_hours
 
       until (bday = business_day(rolling_timestamp)).include?(rolling_timestamp + remaining_hours.hours)
-        remaining_hours -= bday.working_hours(from: rolling_timestamp)
-        rolling_timestamp = snap_to_beginning_of_next_business_day(bday.at_end(rolling_timestamp) + 1.minute)
+        remaining_hours -= bday.number_of_working_hours(from: rolling_timestamp)
+        rolling_timestamp = snap_to_beginning_of_next_business_day(bday.at_end + 1.minute)
       end
 
       rolling_timestamp + remaining_hours.hours
@@ -52,15 +52,15 @@ module Business
       bday = business_day(date)
       if bday.include?(date)
         date
-      elsif bday.before_start?(date)
-        business_day(date).at_beginning(date)
+      elsif bday.starts_after?(date)
+        bday.at_beginning
       else
-        snap_to_beginning_of_next_business_day date.change(day: date.day + 1, hour: 0, minute: 0)
+        snap_to_beginning_of_next_business_day date.tomorrow.beginning_of_day
       end
     end
 
-    def holiday? date
-      @holidays.include?(date)
+    def holiday? date_or_time
+      @holidays.include?(date_or_time.to_date)
     end
 
     private
@@ -86,21 +86,13 @@ module Business
       [from, to, sign]
     end
 
-    def working_hours_in_day date
-      business_day(date).working_hours
-    end
-
     def business_day date
-      dow = Day.date_to_dow(date)
-      if holiday? date
-        Day.non_working_day(dow)
-      else
-        @working_hours[dow]
-      end
+      dow = date.strftime '%a'
+      Day.new date, (holiday?(date) ? NoWorkingHours.new : @working_hours[dow])
     end
 
     def max_working_hours_in_a_day
-      @working_hours.values.map(&:working_hours).max
+      @working_hours.values.map(&:quantity).max
     end
   end
 end
