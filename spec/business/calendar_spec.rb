@@ -66,8 +66,45 @@ module Business
         expect_working_hours calendar, '2017-12-16 17:00', '2017-12-15 16:00', -13
       end
 
+      it 'with holdays' do
+        calendar = Calendar.new(
+          working_hours: {
+            'Mon' => 9..17,
+            'Tue' => 9..17,
+            'Wed' => 9..17
+          },
+          holidays: [Date.parse('2019-08-06')]
+        )
+        expect_working_hours calendar, '2019-08-05 9:00', '2019-08-06 17:00', 8
+        expect_working_hours calendar, '2019-08-05 9:00', '2019-08-07 17:00', 16
+        expect_working_hours calendar, '2019-08-06 9:00', '2019-08-07 17:00', 8
+      end
+
       def expect_working_hours calendar, from, to, expected_hours
         expect(calendar.working_hours_between(Time.parse(from), Time.parse(to))).to eq(expected_hours)
+      end
+    end
+
+    context 'add_working_hours' do
+      let(:calendar) do
+        Calendar.new(
+          working_hours: {
+            'Mon' => 5..21,
+            'Tue' => 5..21,
+            'Wed' => 5..21,
+            'Thu' => 5..21,
+            'Fri' => 5..21,
+            'Sat' => 5..13
+          }
+        )
+      end
+
+      skip 'when the result is on the same day' do
+        add_working_hours calendar, '2000-02-22 06:05', 5, '2000-02-22 11:05'
+      end
+
+      def add_working_hours calendar, to, hours, expected_time
+        expect(calendar.add_working_hours(Time.parse(to), hours)).to eq(Time.parse(expected_time))
       end
     end
   end

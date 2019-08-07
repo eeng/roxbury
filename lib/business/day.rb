@@ -7,10 +7,14 @@ module Business
       when Range
         new begins_at: bday_spec.first, ends_at: bday_spec.last
       when nil
-        new begins_at: 0, ends_at: 0
+        non_working_day
       else
         raise ArgumentError, "Business day spec not supported: #{bday_spec.inspect}"
       end
+    end
+
+    def self.non_working_day
+      new begins_at: 0, ends_at: 0
     end
 
     def initialize begins_at:, ends_at:

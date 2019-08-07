@@ -12,7 +12,7 @@ module Business
       @working_hours = DAYS_OF_THE_WEEK.inject({}) do |wh, dow|
         wh.merge dow => Day.parse(working_hours[dow])
       end
-      @holidays = holidays
+      @holidays = Set.new(holidays)
     end
 
     def working_hours_between from, to
@@ -26,7 +26,11 @@ module Business
     end
 
     def add_business_days date, days
-      date + days
+      # TODO
+    end
+
+    def holiday? date
+      @holidays.include?(date)
     end
 
     private
@@ -46,7 +50,11 @@ module Business
     end
 
     def business_day date
-      @working_hours[date.strftime('%a')]
+      if holiday? date
+        Day.non_working_day
+      else
+        @working_hours[date.strftime('%a')]
+      end
     end
   end
 end
