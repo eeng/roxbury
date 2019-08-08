@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Emmanuel Nicolau"]
   spec.email         = ["emmanicolau@gmail.com"]
 
-  spec.summary       = %q{Something}
-  spec.description   = %q{Something}
+  spec.summary       = %q{Ruby library for business days calculations}
+  spec.description   = %q{A Ruby library for handling business days calculations, e.g., working days/hours between two dates, add working days/hours to a date, etc.}
   spec.homepage      = "https://github.com/eeng/roxbury"
   spec.license       = "MIT"
 
