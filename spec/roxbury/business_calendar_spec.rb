@@ -270,25 +270,25 @@ module Roxbury
       end
 
       it 'when the datetime is already in the working period, should return the same value' do
-        snap '2019-08-05 08:00', '2019-08-05 08:00'
-        snap '2019-08-05 15:59', '2019-08-05 15:59'
-        snap '2019-08-06 09:00', '2019-08-06 09:00'
-        snap '2019-08-06 16:59', '2019-08-06 16:59'
+        roll_forward '2019-08-05 08:00', '2019-08-05 08:00'
+        roll_forward '2019-08-05 15:59', '2019-08-05 15:59'
+        roll_forward '2019-08-06 09:00', '2019-08-06 09:00'
+        roll_forward '2019-08-06 16:59', '2019-08-06 16:59'
       end
 
       it 'when the datetime is before the start of the business day, should return the start of the business day' do
-        snap '2019-08-05 00:00', '2019-08-05 08:00'
-        snap '2019-08-05 07:00', '2019-08-05 08:00'
-        snap '2019-08-06 08:30', '2019-08-06 09:00'
+        roll_forward '2019-08-05 00:00', '2019-08-05 08:00'
+        roll_forward '2019-08-05 07:00', '2019-08-05 08:00'
+        roll_forward '2019-08-06 08:30', '2019-08-06 09:00'
       end
 
       it 'when the datetime is after the end of the business day should return the start of the next business day' do
-        snap '2019-08-05 16:00', '2019-08-06 09:00'
-        snap '2019-08-05 16:05', '2019-08-06 09:00'
-        snap '2019-08-06 17:01', '2019-08-09 07:00'
+        roll_forward '2019-08-05 16:00', '2019-08-06 09:00'
+        roll_forward '2019-08-05 16:05', '2019-08-06 09:00'
+        roll_forward '2019-08-06 17:01', '2019-08-09 07:00'
       end
 
-      def snap date, expected_result
+      def roll_forward date, expected_result
         expect(calendar.roll_forward(Time.parse(date))).to eq(Time.parse(expected_result))
       end
     end

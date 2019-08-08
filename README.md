@@ -2,6 +2,8 @@
 
 A Ruby library for handling business days calculations, e.g., working days/hours between two dates, add working days/hours to a date, etc.
 
+It was extracted from a production application that's been running for many years.
+
 [![Build Status](https://travis-ci.org/eeng/roxbury.svg?branch=master)](https://travis-ci.org/eeng/roxbury)
 
 ## Installation
