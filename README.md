@@ -1,8 +1,8 @@
 # Roxbury
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/roxbury`. To experiment with that code, run `bin/console` for an interactive prompt.
+A Ruby library for handling business days calculations, e.g., working days/hours between two dates, add working days/hours to a date, etc.
 
-TODO: Delete this and the text above, and describe your gem
+[![Build Status](https://travis-ci.org/eeng/roxbury.svg?branch=master)](https://travis-ci.org/eeng/roxbury)
 
 ## Installation
 
@@ -16,19 +16,55 @@ And then execute:
 
     $ bundle
 
-Or install it yourself as:
-
-    $ gem install roxbury
-
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+calendar = Roxbury::BusinessCalendar.new(
+  working_hours: {
+    'Mon' => 9..17,
+    'Tue' => 9..17,
+    'Wed' => 9..17,
+    'Thu' => 9..17,
+    'Fri' => 9..17,
+    'Sat' => 9..13
+  }
+)
+
+calendar.working_days_between(Date.new(2019, 8, 1), Date.new(2019, 8, 5))
+# => 3.5
+
+calendar.add_working_days(Date.new(2019, 8, 3), 1)
+# => Date.new(2019, 8, 5)
+
+calendar.add_working_days(Time.new(2019, 8, 3, 9, 0), 1)
+# => Time.new(2019, 8, 5, 13, 0)
+
+calendar.working_hours_between(Time.new(2019, 8, 2, 8, 0), Time.new(2019, 8, 3, 14, 0))
+# => 12
+
+calendar.roll_forward(Time.new(2019, 8, 4))
+# => Time.new(2019, 8, 5, 9, 0)
+```
+
+Please refer to the tests in `spec/roxbury/business_calendar_spec.rb` for more examples.
+
+### Holidays
+
+You can specify the list of holidays in the constructor:
+
+```ruby
+calendar = Roxbury::BusinessCalendar.new(
+  working_hours: Hash.new(9..17),
+  holidays: [Date.new(2019, 12, 25)]
+)
+
+calendar.working_days_between(Date.new(2019, 12, 24), Date.new(2019, 12, 26))
+# => 2.0
+```
 
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
@@ -36,4 +72,4 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/eeng/r
 
 ## Code of Conduct
 
-Everyone interacting in the Roxbury project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/eeng/roxbury/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Roxbury project’s codebases and issue trackers is expected to follow the [code of conduct](https://github.com/eeng/roxbury/blob/master/CODE_OF_CONDUCT.md).

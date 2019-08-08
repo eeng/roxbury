@@ -14,6 +14,9 @@ module Roxbury
       @holidays = Set.new(holidays)
     end
 
+    # @param from [Date, Time] if it's a date, it's handled as the beginning of the day
+    # @param to [Date, Time] if it's a date, it's handled as the end of the day
+    # @return [Float] the number of working hours between the given dates
     def working_hours_between from, to
       from, to, sign = invert_if_needed cast_time(from, :start), cast_time(to, :end)
 
@@ -41,16 +44,24 @@ module Roxbury
       rolling_timestamp + remaining_hours.hours
     end
 
+    # @param from [Date, Time] if it's a date, it's handled as the beginning of the day
+    # @param to [Date, Time] if it's a date, it's handled as the end of the day
+    # @return [Float] the number of working days between the given dates.
     def working_days_between from, to
       working_hours_between(from, to) / max_working_hours_in_a_day.to_f
     end
 
+    # @param to [Date, Time]
+    # @param number_of_days [Integer, Float]
+    # @return [Date, Time] The result of adding the number_of_days to the given date. If a Date is given returns a Date, otherwise if a Time is given returns a Time.
     def add_working_days to, number_of_days
       result = add_working_hours(to, number_of_days * max_working_hours_in_a_day)
       to.is_a?(Date) ? result.to_date : result
     end
 
-    # Snaps the date to the beginning of the next business day, unless it is already within the working hours
+    # Snaps the date to the beginning of the next business day, unless it is already within the working hours.
+    #
+    # @param date [Date, Time]
     def roll_forward date
       bday = business_day(date)
       if bday.include?(date)
@@ -62,6 +73,7 @@ module Roxbury
       end
     end
 
+    # Snaps the date to the beginning of the next business day.
     def at_beginning_of_next_business_day date
       roll_forward date.tomorrow.beginning_of_day
     end
