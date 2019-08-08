@@ -193,26 +193,17 @@ module Business
         expect(calendar.add_working_hours(Date.parse('2000-02-22'), 1)).to eq(Time.parse('2000-02-22 06:00'))
       end
 
-      def add_working_hours calendar, to, hours, expected_time
-        expect(calendar.add_working_hours(Time.parse(to), hours)).to eq(Time.parse(expected_time))
-      end
-    end
-
-    context 'working_hours_between and add_working_hours' do
-      let(:calendar) do
-        Calendar.new(
+      it 'should be complementary with working_hours_between' do
+        calendar = Calendar.new(
           working_hours: {
             'Mon' => 8..17,
             'Wed' => 7..21,
             'Fri' => 9..18
           }
         )
-      end
-
-      it 'should be consistent between them' do
         10.times do
           hours_to_add = rand(0..1000)
-          from = Time.parse('2019-08-01 00:00')
+          from = Time.local(2019, 8, rand(1..31))
           to = calendar.add_working_hours(from, hours_to_add)
           working_hours = calendar.working_hours_between(from, to)
           expect(working_hours).to eq(hours_to_add), %(
@@ -222,9 +213,13 @@ module Business
           )
         end
       end
+
+      def add_working_hours calendar, to, hours, expected_time
+        expect(calendar.add_working_hours(Time.parse(to), hours)).to eq(Time.parse(expected_time))
+      end
     end
 
-    context 'snap_to_beginning_of_next_business_day' do
+    context 'roll_forward' do
       let(:calendar) do
         Calendar.new(
           working_hours: {
@@ -255,7 +250,7 @@ module Business
       end
 
       def snap date, expected_result
-        expect(calendar.snap_to_beginning_of_next_business_day(Time.parse(date))).to eq(Time.parse(expected_result))
+        expect(calendar.roll_forward(Time.parse(date))).to eq(Time.parse(expected_result))
       end
     end
   end

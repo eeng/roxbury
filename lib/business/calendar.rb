@@ -37,25 +37,26 @@ module Business
     def add_working_hours to, number_of_hours
       to = cast_time(to, :start)
 
-      rolling_timestamp = snap_to_beginning_of_next_business_day(to)
+      rolling_timestamp = roll_forward(to)
       remaining_hours = number_of_hours
 
       until (bday = business_day(rolling_timestamp)).include?(rolling_timestamp + remaining_hours.hours)
         remaining_hours -= bday.number_of_working_hours(from: rolling_timestamp)
-        rolling_timestamp = snap_to_beginning_of_next_business_day(bday.at_end + 1.minute)
+        rolling_timestamp = roll_forward(bday.at_end + 1.minute)
       end
 
       rolling_timestamp + remaining_hours.hours
     end
 
-    def snap_to_beginning_of_next_business_day date
+    # Snaps the date to the beginning of the next day
+    def roll_forward date
       bday = business_day(date)
       if bday.include?(date)
         date
       elsif bday.starts_after?(date)
         bday.at_beginning
       else
-        snap_to_beginning_of_next_business_day date.tomorrow.beginning_of_day
+        roll_forward date.tomorrow.beginning_of_day
       end
     end
 
