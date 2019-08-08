@@ -81,48 +81,12 @@ module Business
       end
 
       it 'should work with Date instances' do
-        expect(calendar.working_hours_between(Date.parse('2019-08-09'), Date.parse('2019-08-09'))).to eq(16)
-        expect(calendar.working_hours_between(Date.parse('2019-08-10'), Date.parse('2019-08-10'))).to eq(8)
+        expect_working_hours calendar, '2019-08-09', '2019-08-09', 16
+        expect_working_hours calendar, '2019-08-10', '2019-08-10', 8
       end
 
       def expect_working_hours calendar, from, to, expected_hours
-        expect(calendar.working_hours_between(Time.parse(from), Time.parse(to))).to eq(expected_hours)
-      end
-    end
-
-    context 'working_days_between' do
-      let(:calendar) do
-        Calendar.new(
-          working_hours: {
-            'Mon' => 5..21,
-            'Tue' => 5..21,
-            'Wed' => 5..21,
-            'Thu' => 5..21,
-            'Fri' => 5..21,
-            'Sat' => 5..13
-          },
-          holidays: [Date.parse('2019-05-07')]
-        )
-      end
-
-      it 'should return the number of working days between the two dates including the fractional part' do
-        expect_working_days calendar, '2014-12-01', '2014-12-01', 1
-        expect_working_days calendar, '2014-12-01', '2014-12-07', 5.5
-        expect_working_days calendar, '2014-12-01', '2014-12-08', 6.5
-        expect_working_days calendar, '2014-12-01', '2014-12-09', 7.5
-        expect_working_days calendar, '2014-12-01', '2014-12-09', 7.5
-        expect_working_days calendar, '2014-12-01', '2014-12-13', 11
-        expect_working_days calendar, '2019-08-01', '2019-09-01', 24.5
-        expect_working_days calendar, '2019-08-01', '2020-08-01', 288.5
-      end
-
-      it 'should handle holidays' do
-        expect_working_days calendar, '2019-05-07', '2019-05-07', 0
-        expect_working_days calendar, '2019-05-06', '2019-05-07', 1
-      end
-
-      def expect_working_days calendar, from, to, wd
-        expect(calendar.working_days_between(Date.parse(from), Date.parse(to))).to eq wd
+        expect(calendar.working_hours_between(parse_date_or_time(from), parse_date_or_time(to))).to eq(expected_hours)
       end
     end
 
@@ -219,6 +183,74 @@ module Business
       end
     end
 
+    context 'working_days_between' do
+      let(:calendar) do
+        Calendar.new(
+          working_hours: {
+            'Mon' => 5..21,
+            'Tue' => 5..21,
+            'Wed' => 5..21,
+            'Thu' => 5..21,
+            'Fri' => 5..21,
+            'Sat' => 5..13
+          },
+          holidays: [Date.parse('2019-05-07')]
+        )
+      end
+
+      it 'should return the number of working days between the two dates including the fractional part' do
+        expect_working_days calendar, '2014-12-01', '2014-12-01', 1
+        expect_working_days calendar, '2014-12-01', '2014-12-03', 3
+        expect_working_days calendar, '2014-12-01', '2014-12-07', 5.5
+        expect_working_days calendar, '2014-12-01', '2014-12-08', 6.5
+        expect_working_days calendar, '2014-12-01', '2014-12-09', 7.5
+        expect_working_days calendar, '2014-12-01', '2014-12-09', 7.5
+        expect_working_days calendar, '2014-12-01', '2014-12-13', 11
+        expect_working_days calendar, '2019-08-01', '2019-09-01', 24.5
+        expect_working_days calendar, '2019-08-01', '2020-08-01', 288.5
+      end
+
+      it 'should handle holidays' do
+        expect_working_days calendar, '2019-05-07', '2019-05-07', 0
+        expect_working_days calendar, '2019-05-06', '2019-05-07', 1
+        expect_working_days calendar, '2019-05-06', '2019-05-08', 2
+      end
+
+      def expect_working_days calendar, from, to, wd
+        expect(calendar.working_days_between(Date.parse(from), Date.parse(to))).to eq wd
+      end
+    end
+
+    context 'add_working_days' do
+      let(:calendar) do
+        Calendar.new(
+          working_hours: {
+            'Mon' => 5..21,
+            'Tue' => 5..21,
+            'Wed' => 5..21,
+            'Thu' => 5..21,
+            'Fri' => 5..21,
+            'Sat' => 5..13
+          }
+        )
+      end
+
+      it 'should add the equivalent hours considering a day as the longest working hours in a day' do
+        add_working_days calendar, '2019-08-05', 0, '2019-08-05'
+        add_working_days calendar, '2019-08-05', 1, '2019-08-06'
+        add_working_days calendar, '2019-08-05', 6, '2019-08-12'
+        add_working_days calendar, '2019-08-10', 1, '2019-08-12'
+      end
+
+      it 'returns a time when a time is given' do
+        add_working_days calendar, '2019-08-05 10:00', 1, '2019-08-06 10:00'
+      end
+
+      def add_working_days calendar, date, number_of_days, expected_result
+        expect(calendar.add_working_days(parse_date_or_time(date), number_of_days)).to eq parse_date_or_time(expected_result)
+      end
+    end
+
     context 'roll_forward' do
       let(:calendar) do
         Calendar.new(
@@ -251,6 +283,13 @@ module Business
 
       def snap date, expected_result
         expect(calendar.roll_forward(Time.parse(date))).to eq(Time.parse(expected_result))
+      end
+    end
+
+    def parse_date_or_time str
+      case str.length
+      when 10 then Date.parse(str)
+      else Time.parse(str)
       end
     end
   end

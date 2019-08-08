@@ -30,10 +30,6 @@ module Business
       working_hours_per_day.sum.round(2) * sign
     end
 
-    def working_days_between from, to
-      working_hours_between(from, to) / max_working_hours_in_a_day.to_f
-    end
-
     def add_working_hours to, number_of_hours
       to = cast_time(to, :start)
 
@@ -46,6 +42,15 @@ module Business
       end
 
       rolling_timestamp + remaining_hours.hours
+    end
+
+    def working_days_between from, to
+      working_hours_between(from, to) / max_working_hours_in_a_day.to_f
+    end
+
+    def add_working_days to, number_of_days
+      result = add_working_hours(to, number_of_days * max_working_hours_in_a_day)
+      to.is_a?(Date) ? result.to_date : result
     end
 
     # Snaps the date to the beginning of the next day
