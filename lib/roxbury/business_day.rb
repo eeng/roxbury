@@ -1,6 +1,6 @@
-module Business
+module Roxbury
   # Wraps a specific date with its working hours schedule
-  class Day
+  class BusinessDay
     def initialize date, working_hours
       @date = date
       @working_hours = working_hours

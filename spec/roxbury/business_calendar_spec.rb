@@ -1,12 +1,8 @@
-module Business
-  RSpec.describe Calendar do
-    it 'has a version number' do
-      expect(Calendar::VERSION).not_to be nil
-    end
-
+module Roxbury
+  RSpec.describe BusinessCalendar do
     context 'constructor' do
       it 'specifying the working hours with ranges per day of week' do
-        calendar = Calendar.new(
+        calendar = BusinessCalendar.new(
           working_hours: {
             'Mon' => 5..21,
             'Sat' => 5..13
@@ -22,15 +18,15 @@ module Business
 
       it 'must specify at least one working day' do
         raise_error = raise_error(ArgumentError, /must specify at least one working day/)
-        expect { Calendar.new }.to raise_error
-        expect { Calendar.new(working_hours: {'Mon' => 0..0}) }.to raise_error
-        expect { Calendar.new(working_hours: {'Mon' => -5..0}) }.to raise_error
+        expect { BusinessCalendar.new }.to raise_error
+        expect { BusinessCalendar.new(working_hours: {'Mon' => 0..0}) }.to raise_error
+        expect { BusinessCalendar.new(working_hours: {'Mon' => -5..0}) }.to raise_error
       end
     end
 
     context 'working_hours_between' do
       let(:calendar) do
-        Calendar.new(
+        BusinessCalendar.new(
           working_hours: {
             'Mon' => 5..21,
             'Tue' => 5..21,
@@ -74,7 +70,7 @@ module Business
       end
 
       it 'with holdays' do
-        calendar = Calendar.new(
+        calendar = BusinessCalendar.new(
           working_hours: {
             'Mon' => 9..17,
             'Tue' => 9..17,
@@ -99,7 +95,7 @@ module Business
 
     context 'add_working_hours' do
       let(:calendar) do
-        Calendar.new(
+        BusinessCalendar.new(
           working_hours: {
             'Mon' => 5..21,
             'Tue' => 5..21,
@@ -144,7 +140,7 @@ module Business
       end
 
       it 'some weird calendars' do
-        calendar = Calendar.new(
+        calendar = BusinessCalendar.new(
           working_hours: {
             'Mon' => 8..18,
             'Wed' => 7..17,
@@ -154,7 +150,7 @@ module Business
         add_working_hours calendar, '2019-08-01 00:00', 160, '2019-09-09 08:00'
         add_working_hours calendar, '2019-08-01 00:00', 300, '2019-10-11 09:00'
 
-        calendar = Calendar.new(
+        calendar = BusinessCalendar.new(
           working_hours: Hash.new(0..24)
         )
         add_working_hours calendar, '2000-02-22 00:00', 23.5, '2000-02-22 23:30'
@@ -165,7 +161,7 @@ module Business
       end
 
       it 'should be complementary with working_hours_between' do
-        calendar = Calendar.new(
+        calendar = BusinessCalendar.new(
           working_hours: {
             'Mon' => 8..17,
             'Wed' => 7..21,
@@ -196,7 +192,7 @@ module Business
 
     context 'working_days_between' do
       let(:calendar) do
-        Calendar.new(
+        BusinessCalendar.new(
           working_hours: {
             'Mon' => 5..21,
             'Tue' => 5..21,
@@ -234,7 +230,7 @@ module Business
 
     context 'add_working_days' do
       let(:calendar) do
-        Calendar.new(
+        BusinessCalendar.new(
           working_hours: {
             'Mon' => 5..21,
             'Tue' => 5..21,
@@ -264,7 +260,7 @@ module Business
 
     context 'roll_forward' do
       let(:calendar) do
-        Calendar.new(
+        BusinessCalendar.new(
           working_hours: {
             'Mon' => 8..16,
             'Tue' => 9..17,

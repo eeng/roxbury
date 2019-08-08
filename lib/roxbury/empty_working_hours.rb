@@ -1,4 +1,4 @@
-module Business
+module Roxbury
   # Null object version of WorkingHours for holidays and other non working days
   class EmptyWorkingHours < WorkingHours
     def initialize

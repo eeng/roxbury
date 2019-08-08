@@ -1,4 +1,4 @@
-module Business
+module Roxbury
   class WorkingHours
     attr_accessor :begins_at, :ends_at
 

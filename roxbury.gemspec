@@ -1,16 +1,16 @@
 lib = File.expand_path("lib", __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "business/calendar/version"
+require "roxbury/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "business-calendar"
-  spec.version       = Business::Calendar::VERSION
+  spec.name          = "roxbury"
+  spec.version       = Roxbury::VERSION
   spec.authors       = ["Emmanuel Nicolau"]
   spec.email         = ["emmanicolau@gmail.com"]
 
   spec.summary       = %q{Something}
   spec.description   = %q{Something}
-  spec.homepage      = "https://github.com/eeng/business-calendar"
+  spec.homepage      = "https://github.com/eeng/roxbury"
   spec.license       = "MIT"
 
   # Specify which files should be added to the gem when it is released.

@@ -1,11 +1,5 @@
-require 'active_support/time'
-require 'business/calendar/version'
-require 'business/working_hours'
-require 'business/empty_working_hours'
-require 'business/day'
-
-module Business
-  class Calendar
+module Roxbury
+  class BusinessCalendar
     DAYS_OF_THE_WEEK = %w[Mon Tue Wed Thu Fri Sat Sun]
 
     attr_reader :working_hours
@@ -101,7 +95,7 @@ module Business
 
     def business_day date
       dow = date.strftime '%a'
-      Day.new date, (holiday?(date) ? EmptyWorkingHours.new : @working_hours[dow])
+      BusinessDay.new date, (holiday?(date) ? EmptyWorkingHours.new : @working_hours[dow])
     end
 
     def max_working_hours_in_a_day
