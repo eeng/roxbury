@@ -1,6 +1,6 @@
 module Business
   # Null object version of WorkingHours for holidays and other non working days
-  class NoWorkingHours < WorkingHours
+  class EmptyWorkingHours < WorkingHours
     def initialize
       super begins_at: 0, ends_at: 0
     end
@@ -11,6 +11,10 @@ module Business
 
     def starts_after? _timestamp
       false
+    end
+
+    def non_working?
+      true
     end
   end
 end

@@ -4,8 +4,8 @@ module Business
       expect(Calendar::VERSION).not_to be nil
     end
 
-    context 'working_hours configuration' do
-      it 'with ranges per day of week' do
+    context 'constructor' do
+      it 'specifying the working hours with ranges per day of week' do
         calendar = Calendar.new(
           working_hours: {
             'Mon' => 5..21,
@@ -18,6 +18,13 @@ module Business
         expect(calendar.working_hours['Sat'].ends_at).to eq 13
         expect(calendar.working_hours['Thu'].begins_at).to eq 0
         expect(calendar.working_hours['Thu'].ends_at).to eq 0
+      end
+
+      it 'must specify at least one working day' do
+        raise_error = raise_error(ArgumentError, /must specify at least one working day/)
+        expect { Calendar.new }.to raise_error
+        expect { Calendar.new(working_hours: {'Mon' => 0..0}) }.to raise_error
+        expect { Calendar.new(working_hours: {'Mon' => -5..0}) }.to raise_error
       end
     end
 
@@ -154,7 +161,7 @@ module Business
       end
 
       it 'works with Date instances' do
-        expect(calendar.add_working_hours(Date.parse('2000-02-22'), 1)).to eq(Time.parse('2000-02-22 06:00'))
+        add_working_hours calendar, '2000-02-22', 1, '2000-02-22 06:00'
       end
 
       it 'should be complementary with working_hours_between' do
@@ -176,6 +183,10 @@ module Business
             working_hours_between(#{from}, #{to}) => #{working_hours}
           )
         end
+      end
+
+      it 'hours to add must not be negative' do
+        expect { calendar.add_working_hours(Time.now, -10) }.to raise_error(ArgumentError, /must not be negative/)
       end
 
       def add_working_hours calendar, to, hours, expected_time
@@ -291,6 +302,11 @@ module Business
       when 10 then Date.parse(str)
       else Time.parse(str)
       end
+    end
+
+    it 'parse_date_or_time should return Time instance if the time part is given, otherwise should return a Date' do
+      expect(parse_date_or_time('2019-08-06')).to eq Date.new(2019, 8, 6)
+      expect(parse_date_or_time('2019-03-15 10:00')).to eq Time.new(2019, 3, 15, 10, 0)
     end
   end
 end

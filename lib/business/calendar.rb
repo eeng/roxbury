@@ -1,7 +1,7 @@
 require 'active_support/time'
 require 'business/calendar/version'
 require 'business/working_hours'
-require 'business/no_working_hours'
+require 'business/empty_working_hours'
 require 'business/day'
 
 module Business
@@ -13,6 +13,9 @@ module Business
     def initialize working_hours: {}, holidays: []
       @working_hours = DAYS_OF_THE_WEEK.inject({}) do |wh, dow|
         wh.merge dow => WorkingHours.parse(working_hours[dow])
+      end
+      if @working_hours.values.all?(&:non_working?)
+        raise ArgumentError, 'You must specify at least one working day in working_hours.'
       end
       @holidays = Set.new(holidays)
     end
@@ -31,14 +34,14 @@ module Business
     end
 
     def add_working_hours to, number_of_hours
+      raise ArgumentError, 'number_of_hours must not be negative' if number_of_hours < 0
       to = cast_time(to, :start)
-
       rolling_timestamp = roll_forward(to)
       remaining_hours = number_of_hours
 
       until (bday = business_day(rolling_timestamp)).include?(rolling_timestamp + remaining_hours.hours)
         remaining_hours -= bday.number_of_working_hours(from: rolling_timestamp)
-        rolling_timestamp = roll_forward(bday.at_end + 1.minute)
+        rolling_timestamp = at_beginning_of_next_business_day(rolling_timestamp)
       end
 
       rolling_timestamp + remaining_hours.hours
@@ -53,7 +56,7 @@ module Business
       to.is_a?(Date) ? result.to_date : result
     end
 
-    # Snaps the date to the beginning of the next day
+    # Snaps the date to the beginning of the next business day, unless it is already within the working hours
     def roll_forward date
       bday = business_day(date)
       if bday.include?(date)
@@ -63,6 +66,10 @@ module Business
       else
         roll_forward date.tomorrow.beginning_of_day
       end
+    end
+
+    def at_beginning_of_next_business_day date
+      roll_forward date.tomorrow.beginning_of_day
     end
 
     def holiday? date_or_time
@@ -94,7 +101,7 @@ module Business
 
     def business_day date
       dow = date.strftime '%a'
-      Day.new date, (holiday?(date) ? NoWorkingHours.new : @working_hours[dow])
+      Day.new date, (holiday?(date) ? EmptyWorkingHours.new : @working_hours[dow])
     end
 
     def max_working_hours_in_a_day

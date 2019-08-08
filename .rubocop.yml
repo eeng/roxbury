@@ -79,10 +79,6 @@ Metrics:
 Bundler:
   Enabled: false
 
-Lint/Void:
-  Exclude:
-    - spec/**/*.rb
-
 Lint/AssignmentInCondition:
   Enabled: false
 
