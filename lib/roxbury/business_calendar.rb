@@ -55,11 +55,24 @@ module Roxbury
     # @param number_of_days [Integer, Float]
     # @return [Date, Time] The result of adding the number_of_days to the given date. If a Date is given returns a Date, otherwise if a Time is given returns a Time.
     def add_working_days to, number_of_days
-      result = add_working_hours(to, number_of_days * max_working_hours_in_a_day)
-      to.is_a?(Date) ? result.to_date : result
+      raise ArgumentError, 'number_of_days must not be negative' if number_of_days < 0
+
+      if to.is_a?(Time)
+        # this implementation would work for Date instances as well, but is around 10 times slower than the other in my machine
+        add_working_hours(to, number_of_days * max_working_hours_in_a_day)
+      else
+        remaining_days = number_of_days
+        rolling_date = to
+        loop do
+          remaining_days -= business_day(rolling_date).number_of_working_hours * 1.0 / max_working_hours_in_a_day
+          break if remaining_days < 0
+          rolling_date = roll_forward rolling_date.next
+        end
+        rolling_date
+      end
     end
 
-    # Snaps the date to the beginning of the next business day, unless it is already within the working hours.
+    # Snaps the date to the beginning of the next business day, unless it is already within the working hours of a business day.
     #
     # @param date [Date, Time]
     def roll_forward date
@@ -69,7 +82,7 @@ module Roxbury
       elsif bday.starts_after?(date)
         bday.at_beginning
       else
-        roll_forward date.tomorrow.beginning_of_day
+        roll_forward(date.is_a?(Date) ? date.tomorrow : date.tomorrow.beginning_of_day)
       end
     end
 
@@ -111,7 +124,7 @@ module Roxbury
     end
 
     def max_working_hours_in_a_day
-      @working_hours.values.map(&:quantity).max
+      @max_working_hours_in_a_day ||= @working_hours.values.map(&:quantity).max
     end
   end
 end

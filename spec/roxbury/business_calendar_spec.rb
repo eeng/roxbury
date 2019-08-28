@@ -245,12 +245,21 @@ module Roxbury
       it 'should add the equivalent hours considering a day as the longest working hours in a day' do
         add_working_days calendar, '2019-08-05', 0, '2019-08-05'
         add_working_days calendar, '2019-08-05', 1, '2019-08-06'
+        add_working_days calendar, '2019-08-05', 0.5, '2019-08-05'
         add_working_days calendar, '2019-08-05', 6, '2019-08-12'
         add_working_days calendar, '2019-08-10', 1, '2019-08-12'
+        add_working_days calendar, '2019-08-01', 30, '2019-09-09'
+        add_working_days calendar, '2019-08-01', 300, '2020-08-17'
       end
 
       it 'returns a time when a time is given' do
-        add_working_days calendar, '2019-08-05 10:00', 1, '2019-08-06 10:00'
+        add_working_days calendar, '2019-08-05 00:00', 0, '2019-08-05 05:00'
+        add_working_days calendar, '2019-08-05 00:00', 1, '2019-08-06 05:00'
+        add_working_days calendar, '2019-08-05 00:00', 0.5, '2019-08-05 13:00'
+        add_working_days calendar, '2019-08-05 00:00', 6, '2019-08-12 13:00'
+        add_working_days calendar, '2019-08-10 00:00', 1, '2019-08-12 13:00'
+        add_working_days calendar, '2019-08-01 00:00', 30, '2019-09-09 05:00'
+        add_working_days calendar, '2019-08-01 00:00', 300, '2020-08-17 13:00'
       end
 
       def add_working_days calendar, date, number_of_days, expected_result
@@ -288,8 +297,13 @@ module Roxbury
         roll_forward '2019-08-06 17:01', '2019-08-09 07:00'
       end
 
+      it 'if a date is given returns a date' do
+        roll_forward '2019-08-05', '2019-08-05'
+        roll_forward '2019-08-07', '2019-08-09'
+      end
+
       def roll_forward date, expected_result
-        expect(calendar.roll_forward(Time.parse(date))).to eq(Time.parse(expected_result))
+        expect(calendar.roll_forward(parse_date_or_time(date))).to eq(parse_date_or_time(expected_result))
       end
     end
 
