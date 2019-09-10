@@ -307,6 +307,52 @@ module Roxbury
       end
     end
 
+    context 'next_working_day' do
+      let(:calendar) do
+        BusinessCalendar.new(
+          working_hours: {
+            'Mon' => 5..21,
+            'Tue' => 5..13,
+            'Thu' => 5..21
+          }
+        )
+      end
+
+      it 'when a Date is given, returns the next business day' do
+        next_working_day '2019-09-09', '2019-09-10' # mon to tue
+        next_working_day '2019-09-10', '2019-09-12' # tue to thu
+      end
+
+      it 'when a Time is given, returns the beginning of the next business day' do
+        next_working_day '2019-09-09 20:00', '2019-09-10 05:00'
+        next_working_day '2019-09-10 04:00', '2019-09-12 05:00'
+      end
+
+      def next_working_day param, expected_value
+        expect(calendar.next_working_day(parse_date_or_time(param))).to eq(parse_date_or_time(expected_value))
+      end
+    end
+
+    context 'working_hours_percentage' do
+      let(:calendar) do
+        BusinessCalendar.new(
+          working_hours: {
+            'Mon' => 5..21,
+            'Tue' => 5..13
+          }
+        )
+      end
+
+      it 'returns the working hours quantity of the day divided by the max working hours in the week' do
+        working_hours_percentage '2019-09-09', 1.0
+        working_hours_percentage '2019-09-10', 0.5
+      end
+
+      def working_hours_percentage param, expected_value
+        expect(calendar.working_hours_percentage(parse_date_or_time(param))).to eq(expected_value)
+      end
+    end
+
     def parse_date_or_time str
       case str.length
       when 10 then Date.parse(str)

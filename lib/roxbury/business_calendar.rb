@@ -38,7 +38,7 @@ module Roxbury
 
       until (bday = business_day(rolling_timestamp)).include?(rolling_timestamp + remaining_hours.hours)
         remaining_hours -= bday.number_of_working_hours(from: rolling_timestamp)
-        rolling_timestamp = at_beginning_of_next_business_day(rolling_timestamp)
+        rolling_timestamp = next_working_day(rolling_timestamp)
       end
 
       rolling_timestamp + remaining_hours.hours
@@ -64,7 +64,7 @@ module Roxbury
         remaining_days = number_of_days
         rolling_date = to
         loop do
-          remaining_days -= business_day(rolling_date).number_of_working_hours * 1.0 / max_working_hours_in_a_day
+          remaining_days -= working_hours_percentage(rolling_date)
           break if remaining_days < 0
           rolling_date = roll_forward rolling_date.next
         end
@@ -86,9 +86,21 @@ module Roxbury
       end
     end
 
-    # Snaps the date to the beginning of the next business day.
-    def at_beginning_of_next_business_day date
-      roll_forward date.tomorrow.beginning_of_day
+    # If a Date is given, returns then next business day.
+    # Otherwise if a Time is given, snaps the date to the beginning of the next business day.
+    def next_working_day date
+      case date
+      when Time
+        roll_forward date.tomorrow.beginning_of_day
+      when Date
+        roll_forward date.tomorrow
+      else
+        raise ArgumentError, 'only Date or Time instances are allowed'
+      end
+    end
+
+    def working_hours_percentage date
+      business_day(date).number_of_working_hours * 1.0 / max_working_hours_in_a_day
     end
 
     def holiday? date_or_time
