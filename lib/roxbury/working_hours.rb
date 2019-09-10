@@ -35,6 +35,10 @@ module Roxbury
       timestamp < at_beginning(timestamp)
     end
 
+    def ends_before? timestamp
+      timestamp > at_end(timestamp)
+    end
+
     def at_beginning timestamp
       timestamp.change(hour: begins_at, min: 0, sec: 0)
     end

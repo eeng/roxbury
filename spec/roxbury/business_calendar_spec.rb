@@ -333,6 +333,32 @@ module Roxbury
       end
     end
 
+    context 'prev_working_day' do
+      let(:calendar) do
+        BusinessCalendar.new(
+          working_hours: {
+            'Mon' => 5..21,
+            'Tue' => 5..13,
+            'Thu' => 5..21
+          }
+        )
+      end
+
+      it 'when a Date is given, returns the prev business day' do
+        prev_working_day '2019-09-10', '2019-09-09'
+        prev_working_day '2019-09-12', '2019-09-10'
+      end
+
+      it 'when a Time is given, returns the end of the prev business day' do
+        prev_working_day '2019-09-10 06:00', '2019-09-09 20:59:59'
+        prev_working_day '2019-09-12 05:00', '2019-09-10 12:59:59'
+      end
+
+      def prev_working_day param, expected_value
+        expect(calendar.prev_working_day(parse_date_or_time(param))).to eq(parse_date_or_time(expected_value))
+      end
+    end
+
     context 'working_hours_percentage' do
       let(:calendar) do
         BusinessCalendar.new(

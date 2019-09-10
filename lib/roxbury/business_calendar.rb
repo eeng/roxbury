@@ -86,6 +86,20 @@ module Roxbury
       end
     end
 
+    # Snaps the date to the end of the previous business day, unless it is already within the working hours of a business day.
+    #
+    # @param date [Date, Time]
+    def roll_backward date
+      bday = business_day(date)
+      if bday.include?(date)
+        date
+      elsif bday.ends_before?(date)
+        bday.at_end
+      else
+        roll_backward(date.is_a?(Date) ? date.yesterday : date.yesterday.end_of_day)
+      end
+    end
+
     # If a Date is given, returns then next business day.
     # Otherwise if a Time is given, snaps the date to the beginning of the next business day.
     def next_working_day date
@@ -94,6 +108,19 @@ module Roxbury
         roll_forward date.tomorrow.beginning_of_day
       when Date
         roll_forward date.tomorrow
+      else
+        raise ArgumentError, 'only Date or Time instances are allowed'
+      end
+    end
+
+    # If a Date is given, returns then prev business day.
+    # Otherwise if a Time is given, snaps the date to the beginning of the prev business day.
+    def prev_working_day date
+      case date
+      when Time
+        roll_backward date.yesterday.end_of_day
+      when Date
+        roll_backward date.yesterday
       else
         raise ArgumentError, 'only Date or Time instances are allowed'
       end

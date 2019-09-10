@@ -22,6 +22,10 @@ module Roxbury
       same_day?(timestamp) && @working_hours.starts_after?(timestamp)
     end
 
+    def ends_before? timestamp
+      same_day?(timestamp) && @working_hours.ends_before?(timestamp)
+    end
+
     def at_beginning
       @working_hours.at_beginning @date
     end

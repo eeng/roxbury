@@ -13,6 +13,10 @@ module Roxbury
       false
     end
 
+    def ends_before? _timestamp
+      false
+    end
+
     def non_working?
       true
     end
