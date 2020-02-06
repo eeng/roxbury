@@ -185,6 +185,24 @@ module Roxbury
         expect { calendar.add_working_hours(Time.now, -10) }.to raise_error(ArgumentError, /must not be negative/)
       end
 
+      it 'edge cases' do
+        expect(calendar.add_working_hours(Time.parse('2020-01-14 16:48:49'), 20.18617180128026).round)
+          .to eq Time.parse('2020-01-15 04:59:59')
+      end
+
+      # fit 'property testing' do
+      #   100_000.times do |i|
+      #     from = time_rand 1.month.ago, 1.month.from_now
+      #     hs = rand(0.0..100.0)
+      #     puts [i, from, hs].inspect
+      #     calendar.add_working_hours from, hs
+      #   end
+      # end
+
+      def time_rand from = 0.0, to = Time.now
+        Time.at(from + rand * (to.to_f - from.to_f))
+      end
+
       def add_working_hours calendar, to, hours, expected_time
         expect(calendar.add_working_hours(Time.parse(to), hours)).to eq(Time.parse(expected_time))
       end

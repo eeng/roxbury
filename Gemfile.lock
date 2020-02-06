@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    roxbury (0.2.2)
+    roxbury (0.2.3)
       activesupport (>= 4.2)
 
 GEM
@@ -33,7 +33,7 @@ GEM
       guard (~> 2.1)
       guard-compat (~> 1.1)
       rspec (>= 2.99.0, < 4.0)
-    i18n (1.6.0)
+    i18n (1.7.0)
       concurrent-ruby (~> 1.0)
     listen (3.1.5)
       rb-fsevent (~> 0.9, >= 0.9.4)
@@ -41,7 +41,7 @@ GEM
       ruby_dep (~> 1.2)
     lumberjack (1.0.13)
     method_source (0.9.2)
-    minitest (5.11.3)
+    minitest (5.13.0)
     nenv (0.3.0)
     notiffany (0.1.1)
       nenv (~> 0.1)

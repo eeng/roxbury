@@ -36,8 +36,11 @@ module Roxbury
       rolling_timestamp = roll_forward(to)
       remaining_hours = number_of_hours
 
-      until (bday = business_day(rolling_timestamp)).include?(rolling_timestamp + remaining_hours.hours)
+      loop do
+        bday = business_day(rolling_timestamp)
+        break if bday.include?(rolling_timestamp + remaining_hours.hours)
         remaining_hours -= bday.number_of_working_hours(from: rolling_timestamp)
+        break if remaining_hours < 0
         rolling_timestamp = next_working_day(rolling_timestamp)
       end
 
