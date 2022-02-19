@@ -55,19 +55,31 @@ Style/MutableConstant:
 Style/RescueModifier:
   Enabled: false
 
+Style/HashEachMethods:
+  Enabled: false
+  
+Style/HashTransformKeys:
+  Enabled: false
+  
+Style/HashTransformValues:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 120
+
 Layout/SpaceInsideHashLiteralBraces:
   Enabled: false
 
 Layout/MultilineMethodCallIndentation:
   Enabled: false
 
-Layout/TrailingBlankLines:
+Layout/TrailingEmptyLines:
   Enabled: false
 
-Layout/IndentArray:
+Layout/FirstArrayElementIndentation:
   EnforcedStyle: consistent
 
-Layout/AlignParameters:
+Layout/ParameterAlignment:
   EnforcedStyle: with_fixed_indentation
 
 Layout/SpaceInLambdaLiteral:
@@ -94,5 +106,5 @@ Lint/AmbiguousOperator:
 Lint/AmbiguousBlockAssociation:
   Enabled: false
 
-Naming/UncommunicativeMethodParamName:
+Naming/MethodParameterName:
   Enabled: false
