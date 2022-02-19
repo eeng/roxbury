@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    roxbury (0.2.3)
+    roxbury (0.3.0)
       activesupport (>= 4.2)
 
 GEM
