@@ -1,5 +1,4 @@
 require 'bundler/setup'
-require 'pry-byebug'
 require 'roxbury'
 
 RSpec.configure do |config|
